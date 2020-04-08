@@ -107,8 +107,6 @@ public class MainActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View view) {
-                /*InputStream inputStream = response.body().byteStream();
-                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);*/
                 Bitmap myImage = ((BitmapDrawable) mDisplayImageView.getDrawable()).getBitmap();
                 new MyTask().execute(myImage);
 
@@ -176,70 +174,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /*protected void sendTheImage(Bitmap bmp) throws IOException {
-        final String image = getFileDataFromDrawable(bmp);
-        //String urlPost = "http://78.221.250.17:8000/apiImage/post";
-        String urlPost = "192.168.1.15:8080/world/api/";
-
-        final JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,urlPost,null,
-                new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Log.d("Response",response.toString());
-                    try {
-                        JSONObject jsonObject = new JSONObject(response.toString());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-            }
-        },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // error
-                        Log.d("Error.Response", "Error de post");
-                    }
-                }) {
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<String, String>();
-                long imageName = System.currentTimeMillis();
-                params.put("image", "Hello");
-                return params;
-            }
-        };
-        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
-
-
-    }*/
-
-
-
-
-    /*protected void receivetheimage() throws IOException {
-        //String urlpost = "http://78.221.250.17:8000/";
-        String urlget = "192.168.1.15:8080/world/api/";
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.GET, urlget, null, new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d("Response: ", response.toString());
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("Response: ", "ERROR GET");
-
-                    }
-                });
-
-// Access the RequestQueue through your singleton class.
-        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
-
-
-    }*/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
