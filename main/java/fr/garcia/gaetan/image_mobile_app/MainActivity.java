@@ -11,8 +11,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -20,21 +22,27 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
+/*
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;*/
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.InputStream;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
@@ -89,21 +97,20 @@ public class MainActivity extends AppCompatActivity {
 
                 }else{
                     requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, PICK_IMAGE);
+                    requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, PICK_IMAGE);
                 }
 
             }
         });
 
         mSearchButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View view) {
-                //Bitmap myImage = ((BitmapDrawable) mDisplayImageView.getDrawable()).getBitmap();
-                try {
-                    getHttpResponse();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+                /*InputStream inputStream = response.body().byteStream();
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);*/
+                Bitmap myImage = ((BitmapDrawable) mDisplayImageView.getDrawable()).getBitmap();
+                new MyTask().execute(myImage);
 
             }
         });
@@ -111,34 +118,63 @@ public class MainActivity extends AppCompatActivity {
     }
     public String getFileDataFromDrawable(Bitmap bmp){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        bmp.compress(Bitmap.CompressFormat.PNG, 100, baos);
         byte[] imageBytes = baos.toByteArray();
         String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
         return encodedImage;
     }
 
+    private class MyTask extends AsyncTask<Bitmap, Void, String> {
+        String result;
 
-    public Object getHttpResponse() throws IOException {
+
+        @Override
+        protected String doInBackground(Bitmap... bitmaps) {
+        Bitmap img = bitmaps.clone()[0];
+        postimage(img);
+
+
+            return "hello";
+        }
+    }
+    protected void postimage(Bitmap bitmap){
+        String y = getFileDataFromDrawable(bitmap);
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
-        Request request = new Request.Builder()
-                .url("http://192.168.1.15:8080/world/api")
-                .method("GET", null)
+        MediaType mediaType = MediaType.parse("text/plain");
+
+
+
+
+        RequestBody body = new MultipartBody.Builder().setType(MultipartBody.FORM)
+                .addFormDataPart("image",y)
                 .build();
-        Response response = client.newCall(request).execute();
-        return response.message();
-        /*Request request = new Request.Builder()
-                .url(url)
+        Request request = new Request.Builder()
+                .url("http://78.221.250.17:8000/apiImage/post")
+                .method("POST", body)
                 .build();
 
-        Response response = null;
-        try {
-            response = httpClient.newCall(request).execute();
-            return response.body().string();
-        } catch (IOException e) {
-            Log.e("TAG", "error in getting response get request okhttp");
-        }*/
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                String mMessage = e.getMessage().toString();
+                Log.w("failure Response", mMessage);
+                //call.cancel();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+                String mMessage = response.body().string();
+                Log.e("text", mMessage);
+            }
+
+        });
+
+
     }
+
 
     /*protected void sendTheImage(Bitmap bmp) throws IOException {
         final String image = getFileDataFromDrawable(bmp);
